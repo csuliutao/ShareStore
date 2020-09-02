@@ -1,4 +1,4 @@
-package com.mobo.spstore;
+package com.csu.sharestore;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.mobo.sharepreferencestore.Store;
+
+import csu.liutao.spstore.R;
 
 public class MainActivity extends AppCompatActivity {
     String key = "maaa";
