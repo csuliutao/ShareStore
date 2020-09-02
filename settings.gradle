@@ -1,0 +1,3 @@
+include ':sharepreferencestore'
+include ':app'
+rootProject.name = "spstore"
