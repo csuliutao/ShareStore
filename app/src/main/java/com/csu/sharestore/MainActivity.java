@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         Log.e("main_store", "string =" + store.getString(key + 5, "null"));
         Log.e("main_store", "boolean =" + store.getBoolean(key + 6, false));
 
-        /*store.put(key + 1, 20);
+        store.put(key + 1, 20);
         store.put(key + 2, 200L);
         store.put(key + 5, "sdfss");
         store.put(key + 6, true);
@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
         Log.e("main_store", "int =" + store.getInt(key +1, 1));
         Log.e("main_store", "long =" + store.getLong(key +2, 1L));
         Log.e("main_store", "string =" + store.getString(key + 5, "null"));
-        Log.e("main_store", "boolean =" + store.getBoolean(key + 6, false));*/
+        Log.e("main_store", "boolean =" + store.getBoolean(key + 6, false));
+
+        store.remove(key + 2);
+        store.remove(key + 3);
     }
 }

@@ -13,52 +13,34 @@ public class Store {
     private HashMap<String, Object> mMap;
     private StoreFile mStoreFile;
     private Handler mHandler;
-    private CommitThread mThread;
 
     public Store(Context context, String name) {
+        if (context == null) {
+            throw new NullPointerException("get share preference null execption!");
+        }
         mStoreFile = new StoreFile(getShareName(context, name));
         mMap = mStoreFile.loadFile();
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                if (msg.obj instanceof CommitThread) {
-                    ((CommitThread) msg.obj).start();
+                if (msg != null && msg.what == what) {
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            commit();
+                        }
+                    }.start();
                 }
             }
         };
     }
 
-    private Object getValue(String key, Object def) {
-        if (TextUtils.isEmpty(key)) {
-            return null;
-        }
-        Object result = mMap.get(key);
-        if (result == null) {
-            return def;
-        }
-        return result;
-    }
-
-    private void delayCommit(String key, Object value) {
+    public void remove(String key) {
         if (TextUtils.isEmpty(key)) {
             return;
         }
-        mMap.put(key, value);
-        if (mThread == null) {
-            mThread = new CommitThread();
-        } else if (mHandler.hasMessages(mThread.mMsg.what, mThread)) {
-            return;
-        }
-        mThread.refreshMsg();
-        mHandler.sendMessageDelayed(mThread.mMsg, mThread.mDelay);
-    }
-
-    private String getShareName(Context context, String name) {
-        return context.getFilesDir().getAbsolutePath() + File.separator + "shared_prefs_" + name;
-    }
-
-    private void commit() {
-        mStoreFile.write(mMap);
+        mMap.remove(key);
+        delayCommit();
     }
 
     public String getString(String key, String def) {
@@ -80,21 +62,39 @@ public class Store {
     }
 
     public void put(String key, Object value) {
-        delayCommit(key, value);
+        if (TextUtils.isEmpty(key) || value == null) {
+            return;
+        }
+        mMap.put(key, value);
+        delayCommit();
     }
 
-    private class CommitThread extends Thread {
-        private Message mMsg;
-        private long mDelay = 100;
-
-        public void refreshMsg() {
-            mMsg = Message.obtain(mHandler, 101011);
-            mMsg.obj = this;
+    private Object getValue(String key, Object def) {
+        if (TextUtils.isEmpty(key)) {
+            return null;
         }
-
-        @Override
-        public void run() {
-            commit();
+        Object result = mMap.get(key);
+        if (result == null) {
+            return def;
         }
+        return result;
     }
+
+    private void delayCommit() {
+        if (mHandler.hasMessages(what)) {
+            return;
+        }
+        mHandler.sendEmptyMessageDelayed(what, mDelay);
+    }
+
+    private String getShareName(Context context, String name) {
+        return context.getFilesDir().getAbsolutePath() + File.separator + "shared_prefs_" + name;
+    }
+
+    private void commit() {
+        mStoreFile.write(mMap);
+    }
+
+    private static final long mDelay = 100;
+    private static final int what = 101011;
 }
