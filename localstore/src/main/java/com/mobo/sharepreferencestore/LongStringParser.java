@@ -1,12 +1,12 @@
 package com.mobo.sharepreferencestore;
 
-public class LongParser implements IParser {
-    static final int TYPE = 64;
+class LongStringParser implements IParser {
+    static final int TYPE = 224;
     @Override
     public StoreMessage read(StoreFileReader source, int keyLen, int valueLen) {
         StoreMessage msg = new StoreMessage();
         msg.key = source.readString(keyLen);
-        msg.value = source.readLong();
+        msg.value = source.readString(valueLen);
         return msg;
     }
 
@@ -18,7 +18,12 @@ public class LongParser implements IParser {
         }
         head += msg.key.length();
         sink.write(head);
+
+        head = msg.value.toString().length();
+        sink.write(head >> 8);
+        sink.write(head);
+
         sink.writeString(msg.key);
-        sink.writeLong((Long) msg.value);
+        sink.writeString(msg.value.toString());
     }
 }

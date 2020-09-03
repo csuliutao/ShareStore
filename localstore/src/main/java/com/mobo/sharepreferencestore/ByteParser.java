@@ -1,12 +1,12 @@
 package com.mobo.sharepreferencestore;
 
-public class ShortParser implements IParser {
-    static final int TYPE = 32;
+class ByteParser implements IParser {
+    static final int TYPE = 128;
     @Override
     public StoreMessage read(StoreFileReader source, int keyLen, int valueLen) {
         StoreMessage msg = new StoreMessage();
         msg.key = source.readString(keyLen);
-        msg.value = source.readShort();
+        msg.value = source.read();
         return msg;
     }
 
@@ -20,11 +20,13 @@ public class ShortParser implements IParser {
         sink.write(head);
         sink.writeString(msg.key);
         if (msg.value instanceof Long) {
-            sink.writeShort((int)((long) msg.value));
+            sink.write((int)((long) msg.value));
         } else if (msg.value instanceof Integer) {
-            sink.writeShort((int) msg.value);
+            sink.write((int) msg.value);
+        } else if (msg.value instanceof Short) {
+            sink.write((short) msg.value);
         } else {
-            sink.writeShort((short) msg.value);
+            sink.write((Byte) msg.value);
         }
     }
 }

@@ -1,12 +1,12 @@
 package com.mobo.sharepreferencestore;
 
-public class BooleanParser implements IParser {
-    static final int TYPE = 160;
+class LongParser implements IParser {
+    static final int TYPE = 64;
     @Override
     public StoreMessage read(StoreFileReader source, int keyLen, int valueLen) {
         StoreMessage msg = new StoreMessage();
         msg.key = source.readString(keyLen);
-        msg.value = source.read() == 1;
+        msg.value = source.readLong();
         return msg;
     }
 
@@ -19,6 +19,6 @@ public class BooleanParser implements IParser {
         head += msg.key.length();
         sink.write(head);
         sink.writeString(msg.key);
-        sink.write(Boolean.TRUE.equals(msg.value) ? 1 : 0);
+        sink.writeLong((Long) msg.value);
     }
 }

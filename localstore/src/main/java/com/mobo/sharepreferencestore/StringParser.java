@@ -1,12 +1,12 @@
 package com.mobo.sharepreferencestore;
 
-public class IntParser implements IParser{
-    static final int TYPE = 0;
+class StringParser implements IParser {
+    static final int TYPE = 96;
     @Override
     public StoreMessage read(StoreFileReader source, int keyLen, int valueLen) {
         StoreMessage msg = new StoreMessage();
         msg.key = source.readString(keyLen);
-        msg.value = source.readInt();
+        msg.value = source.readString(valueLen);
         return msg;
     }
 
@@ -18,11 +18,8 @@ public class IntParser implements IParser{
         }
         head += msg.key.length();
         sink.write(head);
+        sink.write(msg.value.toString().length());
         sink.writeString(msg.key);
-        if (msg.value instanceof Long) {
-            sink.writeInt((int)((long) msg.value));
-        } else {
-            sink.writeInt((int) msg.value);
-        }
+        sink.writeString(msg.value.toString());
     }
 }

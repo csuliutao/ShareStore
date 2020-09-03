@@ -10,21 +10,19 @@ import java.io.File;
 import java.util.HashMap;
 
 public class Store {
-    private Store() {}
-
     private HashMap<String, Object> mMap;
     private StoreFile mStoreFile;
     private Handler mHandler;
     private CommitThread mThread;
 
-    private void prepare(Context context) {
-        mStoreFile = new StoreFile(getShareName(context));
+    public Store(Context context, String name) {
+        mStoreFile = new StoreFile(getShareName(context, name));
         mMap = mStoreFile.loadFile();
         mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.obj instanceof CommitThread) {
-                    ((CommitThread) msg.obj).run();
+                    ((CommitThread) msg.obj).start();
                 }
             }
         };
@@ -55,65 +53,48 @@ public class Store {
         mHandler.sendMessageDelayed(mThread.mMsg, mThread.mDelay);
     }
 
-    private String getShareName(Context context) {
-        return context.getFilesDir().getAbsolutePath() + File.separator + "shared_prefs_main";
+    private String getShareName(Context context, String name) {
+        return context.getFilesDir().getAbsolutePath() + File.separator + "shared_prefs_" + name;
     }
 
     private void commit() {
         mStoreFile.write(mMap);
     }
 
-    public static void init(Context context) {
-        if (context == null) {
-            throw new NullPointerException("get share preference null execption!");
-        }
-        Inner.ONE.manager.prepare(context);
+    public String getString(String key, String def) {
+        return (String) getValue(key, def);
     }
 
-    public static String getString(String key, String def) {
-        return (String) Inner.ONE.manager.getValue(key, def);
+    public boolean getBoolean(String key, boolean def) {
+        return (Boolean) getValue(key, def);
     }
 
-    public static boolean getBoolean(String key, boolean def) {
-        return (Boolean) Inner.ONE.manager.getValue(key, def);
-    }
-
-    public static int getInt(String key, int def) {
-        Object result = Inner.ONE.manager.getValue(key, def);
+    public int getInt(String key, int def) {
+        Object result = getValue(key, def);
         return ((Number) result).intValue();
     }
 
-    public static long getLong(String key, long def) {
-        Object result = Inner.ONE.manager.getValue(key, def);
+    public long getLong(String key, long def) {
+        Object result = getValue(key, def);
         return ((Number) result).longValue();
     }
 
-    public static void put(String key, Object value) {
-        Inner.ONE.manager.delayCommit(key, value);
+    public void put(String key, Object value) {
+        delayCommit(key, value);
     }
 
-    private static class CommitThread implements Runnable {
+    private class CommitThread extends Thread {
         private Message mMsg;
         private long mDelay = 100;
 
         public void refreshMsg() {
-            mMsg = Message.obtain(Inner.ONE.manager.mHandler, 101011);
+            mMsg = Message.obtain(mHandler, 101011);
             mMsg.obj = this;
         }
 
         @Override
         public void run() {
-            new Thread(){
-                @Override
-                public void run() {
-                    Inner.ONE.manager.commit();
-                }
-            }.start();
+            commit();
         }
-    }
-
-    enum Inner {
-        ONE;
-        Store manager = new Store();
     }
 }
